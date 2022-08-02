@@ -1,19 +1,26 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:ggi_chat/connection/chat_connection.dart';
+import 'package:ggi_chat/model/message.dart' as c;
+import 'package:ggi_chat/model/room.dart';
 import 'package:ggi_chat/src/widgets/chat.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final Rooms data;
+  const ChatScreen({super.key, required this.data});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -21,32 +28,189 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   List<types.Message> _messages = [];
-  final _user = const types.User(id: '82091008-a484-4a89-ae75-a22bf8d6f3ac');
+  bool isInitScreen = true;
+  c.ChatMessage? data;
+  bool newMessage = false;
+  double progress = 0;
+  int currentIndex = 0;
+  final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
+  final _user = types.User(id: ChatConnection.user!.data!.chatId!);
 
   @override
   void initState() {
     super.initState();
     _loadMessages();
+    ChatConnection.listenChat(_refreshMessage);
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Chat(
-      messages: _messages,
-      onAttachmentPressed: _handleAtachmentPressed,
-      onMessageTap: _handleMessageTap,
-      onPreviewDataFetched: _handlePreviewDataFetched,
-      onSendPressed: _handleSendPressed,
-      showUserAvatars: true,
-      showUserNames: true,
-      user: _user,
-    ),
-  );
+  void dispose() {
+    super.dispose();
+    itemPositionsListener.itemPositions.removeListener(() {});
+    ChatConnection.unsubscribe();
+    ChatConnection.isLoadMore = false;
+    ChatConnection.roomId = null;
+  }
 
-  void _addMessage(types.Message message) {
-    setState(() {
-      _messages.insert(0, message);
-    });
+  _refreshMessage(dynamic cData) async {
+    if (mounted) {
+      data = await ChatConnection.joinRoom(widget.data.chatRoomId!, refresh: true);
+      isInitScreen = false;
+      if (data != null) {
+        List<c.Messages>? messages = data?.message;
+        if (messages != null) {
+          List<types.Message> values = [];
+          for (var e in messages) {
+            Map<String, dynamic> result = e.toMessageJson();
+            values.add(types.Message.fromJson(result));
+          }
+          if (mounted) {
+            setState(() {
+              _messages = values;
+            });
+          }
+        }
+      }
+      if (mounted) {
+        if (progress >= 0.15) {
+          newMessage = true;
+        }
+        setState(() {});
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isGroup = widget.data.roomInfo!.length > 2;
+    People info = getPeople(widget.data.roomInfo);
+    return Scaffold(
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 30.0,
+                      margin: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Navigator.of(ChatConnection.buildContext).pop();
+                            },
+                            child: SizedBox(
+                                width:30.0,
+                                child: Icon(Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back, color: Colors.black)),
+                          ),
+                          !isGroup ? CircleAvatar(
+                            radius: 12.0,
+                            child: AutoSizeText(
+                              info.getAvatarName(),
+                              style: const TextStyle(color: Colors.white,fontSize: 9),),
+                          ) : const CircleAvatar(
+                            radius: 12.0,
+                            child: AutoSizeText(
+                              'GROUP',
+                              style: TextStyle(color: Colors.white),),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 3.0,left: 10.0,right: 10.0),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(!isGroup ?
+                                '${info.firstName} ${info.lastName}' : 'Group with ${info.firstName} ${info.lastName}',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: const TextStyle(fontSize: 15.0,color: Colors.black)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: isInitScreen ? Center(child: Platform.isAndroid ? const CircularProgressIndicator() : const CupertinoActivityIndicator()) :
+                  Chat(
+                    messages: _messages,
+                    onAttachmentPressed: _handleAtachmentPressed,
+                    onMessageTap: _handleMessageTap,
+                    onPreviewDataFetched: _handlePreviewDataFetched,
+                    onSendPressed: _handleSendPressed,
+                    showUserAvatars: true,
+                    showUserNames: true,
+                    user: _user,
+                    scrollPhysics: const ClampingScrollPhysics(),
+                    itemPositionsListener: itemPositionsListener,
+                    itemScrollController: itemScrollController,
+                    progressUpdate: (value) {
+                      progress = value;
+                      if(progress < 0.1 && newMessage) {
+                        setState(() {
+                          newMessage = false;
+                        });
+                      }
+                    },
+                  ),
+                )
+              ],
+            ),
+          ),
+    );
+  }
+
+
+  void loadMore() async {
+    List<c.Messages>? value = await ChatConnection.loadMoreMessageRoom(ChatConnection.roomId!,currentIndex);
+    if(value != null) {
+      List<c.Messages>? messages = value;
+      if(messages.isNotEmpty) {
+        data?.message?.addAll(messages);
+        List<types.Message> values = [];
+        for(var e in messages) {
+          Map<String, dynamic> result = e.toMessageJson();
+          values.add(types.Message.fromJson(result));
+        }
+        if(mounted) {
+          setState(() {
+            _messages.addAll(values);
+            Future.delayed(const Duration(seconds: 2)).then((value) => ChatConnection.isLoadMore = false);
+          });
+        }
+      }
+      else {
+        ChatConnection.isLoadMore = false;
+      }
+    }
+    else {
+      ChatConnection.isLoadMore = false;
+    }
+  }
+
+  People getPeople(List<People>? people) {
+    return people!.first.sId != ChatConnection.user!.data!.chatId ? people.first : people.last;
+  }
+
+  void _addMessage(types.Message message) async {
+    if(mounted) {
+      setState(() {
+        _messages.insert(0, message);
+      });
+    }
+    if(message.type.name == 'text') {
+      await ChatConnection.sendChat(ChatConnection.roomId!, 'text', (message as types.TextMessage).text);
+      if(mounted) {
+        setState(() {});
+      }
+    }
   }
 
   void _handleAtachmentPressed() {
@@ -209,13 +373,29 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _loadMessages() async {
-    final response = await rootBundle.loadString('assets/messages.json');
-    final messages = (jsonDecode(response) as List)
-        .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
-        .toList();
-
-    setState(() {
-      _messages = messages;
-    });
+    ChatConnection.roomId = widget.data.chatRoomId!;
+    data = await ChatConnection.joinRoom(widget.data.chatRoomId!);
+    isInitScreen = false;
+    if(data != null) {
+      List<c.Messages>? messages = data?.message;
+      if (messages != null) {
+        List<types.Message> values = [];
+        for (var e in messages) {
+          Map<String, dynamic> result = e.toMessageJson();
+          values.add(types.Message.fromJson(result));
+        }
+        _messages = values;
+      }
+    }
+    if(mounted) {
+      setState(() {});
+    }
+    else {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if(mounted) {
+          setState(() {});
+        }
+      });
+    }
   }
 }

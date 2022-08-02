@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ggi_chat/chat/contact_screen.dart';
 import 'package:ggi_chat/chat/room_screen.dart';
 import 'package:ggi_chat/connection/chat_connection.dart';
 
@@ -42,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         else {
           return CupertinoTabView(
-              builder: (BuildContext context) =>  Container());
+              builder: (BuildContext context) =>  const ContactScreen());
         }
       },
     );

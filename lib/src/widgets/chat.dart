@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart' show PhotoViewComputedScale;
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../chat_l10n.dart';
 import '../chat_theme.dart';
@@ -55,7 +56,6 @@ class Chat extends StatefulWidget {
     this.isAttachmentUploading,
     this.isLastPage,
     this.isTextMessageTextSelectable = true,
-    this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.l10n = const ChatL10nEn(),
     required this.messages,
     this.nameBuilder,
@@ -84,6 +84,10 @@ class Chat extends StatefulWidget {
     this.usePreviewData = true,
     required this.user,
     this.userAgent,
+    this.loadMore,
+    required this.itemPositionsListener,
+    required this.progressUpdate,
+    required this.itemScrollController,
   });
 
   /// See [Message.avatarBuilder].
@@ -98,6 +102,8 @@ class Chat extends StatefulWidget {
 
   /// See [Message.bubbleRtlAlignment].
   final BubbleRtlAlignment? bubbleRtlAlignment;
+
+  final Function(double progress) progressUpdate;
 
   /// Allows you to replace the default Input widget e.g. if you want to create
   /// a channel view.
@@ -183,9 +189,6 @@ class Chat extends StatefulWidget {
   /// See [Message.isTextMessageTextSelectable].
   final bool isTextMessageTextSelectable;
 
-  /// See [ChatList.keyboardDismissBehavior].
-  final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
-
   /// Localized copy. Extend [ChatL10n] class to create your own copy or use
   /// existing one, like the default [ChatL10nEn]. You can customize only
   /// certain properties, see more here [ChatL10nEn].
@@ -246,6 +249,8 @@ class Chat extends StatefulWidget {
 
   /// See [ChatList.scrollPhysics].
   final ScrollPhysics? scrollPhysics;
+  final ItemScrollController itemScrollController;
+  final ItemPositionsListener itemPositionsListener;
 
   /// See [Message.showUserAvatars].
   final bool showUserAvatars;
@@ -284,6 +289,8 @@ class Chat extends StatefulWidget {
 
   /// See [Message.userAgent].
   final String? userAgent;
+
+  final Function? loadMore;
 
   @override
   State<Chat> createState() => _ChatState();
@@ -364,13 +371,14 @@ class _ChatState extends State<Chat> {
                                     itemBuilder: (item, index) =>
                                         _messageBuilder(item, constraints),
                                     items: _chatMessages,
-                                    keyboardDismissBehavior:
-                                        widget.keyboardDismissBehavior,
                                     onEndReached: widget.onEndReached,
+                                        progressUpdate: widget.progressUpdate,
                                     onEndReachedThreshold:
                                         widget.onEndReachedThreshold,
-                                    scrollController: widget.scrollController,
-                                    scrollPhysics: widget.scrollPhysics,
+                                        scrollPhysics: widget.scrollPhysics,
+                                        itemScrollController: widget.itemScrollController,
+                                        itemPositionsListener: widget.itemPositionsListener,
+                                        loadMore: widget.loadMore,
                                   ),
                                 ),
                               ),

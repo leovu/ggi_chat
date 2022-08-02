@@ -19,7 +19,7 @@ class StreamSocket {
     socket!.onConnectError((data) {
       print(data);
     });
-    socket!.on('authenticated', (data) {
+    socket!.on('identity_success', (data) {
       streamSocket.addResponse;
     });
 
@@ -30,6 +30,22 @@ class StreamSocket {
     socket!.onConnect((_) {
       print("connectSocket");
       socket!.emit('identity',{'id':user.data?.id});
+    });
+  }
+  void sendMessage(String? message, String roomId){
+    socket!.emit('new message',{'status': 200, 'message':message, 'room':roomId});
+  }
+  void joinRoom(String? roomId) {
+    socket!.emit('subscribe',{'roomId':roomId});
+    socket!.on('subscribe_success', (data) {});
+  }
+  void unsubscribe(String? roomId) {
+    socket!.emit('unsubscribe',{'roomId':roomId});
+    socket!.on('unsubscribe_success', (data) {});
+  }
+  void listenChat(Function callback) {
+    socket!.on('new message', (data) {
+      callback(data);
     });
   }
   bool checkConnected() {

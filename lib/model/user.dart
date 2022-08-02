@@ -31,7 +31,7 @@ class Data {
   String? createdAt;
   String? updatedAt;
   String? createdBy;
-  String? updatedBy;
+  int? updatedBy;
   int? groupId;
   String? chatToken;
   String? chatId;

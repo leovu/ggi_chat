@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -83,6 +82,22 @@ class _RoomScreenState extends State<RoomScreen> {
                     ],
                   ),
                 ),
+                Row(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 3.0,left: 10.0,right: 10.0),
+                      child: Text('Chats',style: TextStyle(fontSize: 25.0,color: Colors.black)),
+                    ),
+                    Expanded(child: Container()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: SizedBox(width:30.0,height: 30.0,
+                          child: InkWell(onTap: () async {
+                          },
+                            child: const Icon(Icons.group_add,color: Colors.blue,),)),
+                    )
+                  ],
+                ),
               ],
             ),
             Expanded(
@@ -104,7 +119,7 @@ class _RoomScreenState extends State<RoomScreen> {
                         child: InkWell(
                             onTap: () async {
                               await Navigator.of(context,rootNavigator: true).push(
-                                MaterialPageRoute(builder: (context) => const ChatScreen()),
+                                MaterialPageRoute(builder: (context) => ChatScreen(data: roomListData!.rooms![position],)),
                               );
                               setState(() {});
                               _getRooms();
@@ -135,12 +150,12 @@ class _RoomScreenState extends State<RoomScreen> {
                 children: [
                   !isGroup ? CircleAvatar(
                     radius: 25.0,
-                    child: Text(
+                    child: AutoSizeText(
                       info.getAvatarName(),
                       style: const TextStyle(color: Colors.white),),
                   ) : const CircleAvatar(
                     radius: 25.0,
-                    child: Text(
+                    child: AutoSizeText(
                       'GROUP',
                       style: TextStyle(color: Colors.white),),
                   ),
@@ -156,10 +171,12 @@ class _RoomScreenState extends State<RoomScreen> {
                                 Expanded(child: AutoSizeText(!isGroup ?
                                 '${info.firstName} ${info.lastName}' : 'Group with ${info.firstName} ${info.lastName}',
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.normal),
+                                  style: TextStyle(fontWeight: !isRead(data.readByRecipients) ? FontWeight.bold : FontWeight.normal),
                                   ),
                                 ),
-                                AutoSizeText(formatDate(data.postedByUser?.updatedAt ?? data.createdAt ?? ""),style: const TextStyle(fontSize: 11,color: Colors.grey),),
+                                AutoSizeText(
+                                  formatDate(data.postedByUser?.updatedAt ?? data.createdAt ?? ""),style:
+                                const TextStyle(fontSize: 11,color: Colors.grey),),
                               ],
                             )
                         ),
@@ -170,6 +187,7 @@ class _RoomScreenState extends State<RoomScreen> {
                           textScaleFactor: 0.8,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontWeight: !isRead(data.readByRecipients) ? FontWeight.bold : FontWeight.normal),
                         )),
                       ],
                     ),
@@ -194,6 +212,17 @@ class _RoomScreenState extends State<RoomScreen> {
       return (p!.sId != ChatConnection.user!.data!.chatId ? ('${(p.firstName ?? '').trim()} ${(p.lastName ?? '').trim()}').trim() : 'You') + (isGroupOwner ? ' ' : ': ');
     }catch(_){
       return '';
+    }
+  }
+  bool isRead(List<ReadByRecipients>? messagesRecived) {
+    try {
+      final m = messagesRecived?.firstWhere((e) => e.readByUserId == ChatConnection.user?.data?.chatId);
+      if(m != null) {
+        return true;
+      }
+      return false;
+    }catch(_) {
+      return false;
     }
   }
   People getPeople(List<People>? people) {
