@@ -45,7 +45,7 @@ class ChatConnection {
     }
     return null;
   }
-  static Future<String?>initiate(List<String> userIds) async {
+  static Future<Rooms?>initiate(List<String> userIds) async {
     Map<String,dynamic> json = {
       "userIds": userIds,
       "type": 'consumer-to-consumer'
@@ -53,7 +53,7 @@ class ChatConnection {
     ResponseData responseData = await connection.post('api/chat/initiate', json);
     if(responseData.isSuccess) {
       if(responseData.data['error_code'] == 0) {
-        return responseData.data['data']['chatRoomId'];
+        return Rooms.fromJson(responseData.data['data']['roomInfo']);
       }
     }
     return null;

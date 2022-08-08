@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ggi_chat/chat/chat_screen.dart';
 import 'package:ggi_chat/connection/chat_connection.dart';
 import 'package:ggi_chat/model/contact.dart';
+import 'package:ggi_chat/model/room.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class ContactScreen extends StatefulWidget {
@@ -110,13 +112,15 @@ class _ContactScreenState extends State<ContactScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 5.0),
                           child: InkWell(
                               onTap: () async {
-                                String? roomId = await ChatConnection.initiate([contactListData!.data![position].id!.toString()]);
+                                Rooms? rooms = await ChatConnection.initiate([contactListData!.data![position].id!.toString()]);
                                 if (!mounted) return;
-                                await Navigator.of(context,rootNavigator: true).push(
-                                  MaterialPageRoute(builder: (context) => ChatScreen(data: roomListData!.rooms![position],)),
-                                );
-                                setState(() {});
-                                _getContact();
+                                if(rooms!=null) {
+                                  await Navigator.of(context,rootNavigator: true).push(
+                                    MaterialPageRoute(builder: (context) => ChatScreen(data: rooms,)),
+                                  );
+                                  setState(() {});
+                                  _getContact();
+                                }
                               },
                               child: _contact(contactListData!.data![position], position == contactListData!.data!.length-1)));
                     }),

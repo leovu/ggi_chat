@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {
-        _userNameController.text = '+84925959787';
+        _userNameController.text = '+84372099835';
         _passwordController.text = '123456';
         _domainController.text = 'http://dev.api.ggigroup.org/';
       });

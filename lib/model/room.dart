@@ -60,7 +60,9 @@ class Rooms {
     if (json['roomInfo'] != null) {
       roomInfo = <People>[];
       json['roomInfo'].forEach((v) {
-        roomInfo!.add(People.fromJson(v));
+        if(v!=null) {
+          roomInfo!.add(People.fromJson(v));
+        }
       });
     }
     createdAt = json['createdAt'];
