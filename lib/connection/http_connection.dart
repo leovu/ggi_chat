@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 class HTTPConnection {
   static String domain = 'http://dev.api.ggigroup.org/';
   static String chatDomain = 'http://dev.ws.ggigroup.org/';
-  Future<ResponseData> upload(String path, File file , {bool isImage = false}) async {
+  Future<ResponseData> upload(String path, File file) async {
     final uri = Uri.parse('$domain$path');
     var request = http.MultipartRequest('POST', uri);
     request.headers['Content-Type'] = 'multipart/form-data';
@@ -15,7 +15,7 @@ class HTTPConnection {
     }
     request.files.add(
       http.MultipartFile(
-        isImage ? 'image' : 'file',
+        'file',
         file.readAsBytes().asStream(),
         file.lengthSync(),
         filename: file.path.split("/").last,

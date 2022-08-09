@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:permission/permission.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:ggi_chat/connection/chat_connection.dart';
 import 'package:ggi_chat/model/message.dart' as c;
@@ -62,7 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (messages != null) {
           List<types.Message> values = [];
           for (var e in messages) {
-            Map<String, dynamic> result = e.toMessageJson();
+            Map<String, dynamic> result = await e.toMessageJson();
             values.add(types.Message.fromJson(result));
           }
           if (mounted) {
@@ -149,6 +148,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     showUserNames: true,
                     user: _user,
                     scrollPhysics: const ClampingScrollPhysics(),
+                    onStickerPressed: _onStickerPressed,
                     itemPositionsListener: itemPositionsListener,
                     itemScrollController: itemScrollController,
                     progressUpdate: (value) {
@@ -167,6 +167,23 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _onStickerPressed(File result) async {
+    final bytes = await result.readAsBytes();
+    final image = await decodeImageFromList(bytes);
+    final message = types.ImageMessage(
+        author: _user,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        height: image.height.toDouble(),
+        id: const Uuid().v4(),
+        name: 'Sticker',
+        size: bytes.length,
+        uri: result.path,
+        width: image.width.toDouble(),
+        status: types.Status.sending
+    );
+    _addMessage(message,file: result);
+  }
+
 
   void loadMore() async {
     List<c.Messages>? value = await ChatConnection.loadMoreMessageRoom(ChatConnection.roomId!,currentIndex);
@@ -176,7 +193,7 @@ class _ChatScreenState extends State<ChatScreen> {
         data?.message?.addAll(messages);
         List<types.Message> values = [];
         for(var e in messages) {
-          Map<String, dynamic> result = e.toMessageJson();
+          Map<String, dynamic> result = await e.toMessageJson();
           values.add(types.Message.fromJson(result));
         }
         if(mounted) {
@@ -199,17 +216,141 @@ class _ChatScreenState extends State<ChatScreen> {
     return people!.first.sId != ChatConnection.user!.data!.chatId ? people.first : people.last;
   }
 
-  void _addMessage(types.Message message) async {
+  void _addMessage(types.Message message, {File? file}) async {
     if(mounted) {
       setState(() {
         _messages.insert(0, message);
       });
     }
     if(message.type.name == 'text') {
-      await ChatConnection.sendChat(ChatConnection.roomId!, 'text', (message as types.TextMessage).text);
+      String? id = await ChatConnection.sendChat(ChatConnection.roomId!, 'text', (message as types.TextMessage).text);
+      int index = _messages.indexWhere((element) => element.id == message.id);
+      types.TextMessage resultMessage;
+      if(id == null) {
+        resultMessage = types.TextMessage(
+          author: message.author,
+          createdAt: message.createdAt,
+          id: message.id,
+          text: message.text,
+          status: types.Status.error,
+        );
+      }
+      else {
+        resultMessage = types.TextMessage(
+          author: message.author,
+          createdAt: message.createdAt,
+          id: id,
+          text: message.text,
+          status: types.Status.sent,
+        );
+      }
       if(mounted) {
+        _messages[index] = resultMessage;
         setState(() {});
       }
+    }
+    else if(message.type.name == 'image') {
+      try {
+        String? url = await ChatConnection.upload(file!);
+        types.ImageMessage resultMessage;
+        if(url != null) {
+          String? id = await ChatConnection.sendChat(ChatConnection.roomId!, 'image', url);
+          if(id != null) {
+            resultMessage = types.ImageMessage(
+                author: message.author,
+                createdAt: message.createdAt,
+                height: (message as types.ImageMessage).height,
+                id: id,
+                name: (message).name,
+                size: (message).size,
+                uri: url,
+                width: (message).width,
+                status: types.Status.sent
+            );
+          }
+          else {
+            resultMessage = types.ImageMessage(
+                author: message.author,
+                createdAt: message.createdAt,
+                height: (message as types.ImageMessage).height,
+                id: (message).id,
+                name: (message).name,
+                size: (message).size,
+                uri: (message).uri,
+                width: (message).width,
+                status: types.Status.error
+            );
+          }
+        }
+        else {
+          resultMessage = types.ImageMessage(
+              author: message.author,
+              createdAt: message.createdAt,
+              height: (message as types.ImageMessage).height,
+              id: (message).id,
+              name: (message).name,
+              size: (message).size,
+              uri: (message).uri,
+              width: (message).width,
+              status: types.Status.error
+          );
+        }
+        int index = _messages.indexWhere((element) => element.id == message.id);
+        if(mounted) {
+          _messages[index] = resultMessage;
+          setState(() {});
+        }
+      }catch(_) {}
+    }
+    else if(message.type.name == 'file') {
+      try {
+        String? url = await ChatConnection.upload(file!);
+        types.FileMessage resultMessage;
+        if(url != null) {
+          String? id = await ChatConnection.sendChat(ChatConnection.roomId!, 'file', url);
+          if(id != null) {
+            resultMessage = types.FileMessage(
+              author: message.author,
+              createdAt: message.createdAt,
+              id: id,
+              mimeType: (message as types.FileMessage).mimeType,
+              name: (message).name,
+              size: (message).size,
+              uri: (message).uri,
+              status: types.Status.sent,
+            );
+          }
+          else {
+            resultMessage = types.FileMessage(
+              author: message.author,
+              createdAt: message.createdAt,
+              id: (message).id,
+              mimeType: (message as types.FileMessage).mimeType,
+              name: (message).name,
+              size: (message).size,
+              uri: (message).uri,
+              status: types.Status.error,
+            );
+          }
+        }
+        else {
+          resultMessage = types.FileMessage(
+            author: message.author,
+            createdAt: message.createdAt,
+            id: (message).id,
+            mimeType: (message as types.FileMessage).mimeType,
+            name: (message).name,
+            size: (message).size,
+            uri: (message).uri,
+            status: types.Status.error,
+          );
+        }
+        int index = _messages.indexWhere((element) => element.id == message.id);
+        if(mounted) {
+          _messages[index] = resultMessage;
+          setState(() {});
+        }
+      }catch(_) {}
     }
   }
 
@@ -218,6 +359,7 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (BuildContext context) => SafeArea(
         child: SizedBox(
+          // height: 124,
           height: 144,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -257,22 +399,67 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _handleFileSelection() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
-
-    if (result != null && result.files.single.path != null) {
-      final message = types.FileMessage(
-        author: _user,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        mimeType: lookupMimeType(result.files.single.path!),
-        name: result.files.single.name,
-        size: result.files.single.size,
-        uri: result.files.single.path!,
+    bool permission = await PermissionRequest.request(PermissionRequestType.STORAGE, (){
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('App needs permission to access storage'),
+          content: const Text('Accept the storage permission to use select file'),
+          actions: [
+            ElevatedButton(
+                onPressed: () {
+                  PermissionRequest.openSetting();
+                },
+                child: const Text('Open setting')),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancel')),
+          ],
+        ),
       );
-
-      _addMessage(message);
+    });
+    if(!permission) {
+      return;
+    }
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowCompression: false,
+        withData: false,
+      );
+      if (result != null && result.files.single.path != null) {
+        String id = const Uuid().v4();
+        final message = types.FileMessage(
+          author: _user,
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          id: id,
+          mimeType: lookupMimeType(result.files.single.path!),
+          name: result.files.single.name,
+          size: result.files.single.size,
+          uri: result.files.single.path!,
+          showStatus: true,
+          status: types.Status.sending,
+        );
+        File file = File(result.files.single.path!);
+        _addMessage(message,file: file);
+      }
+    }catch(_){
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('You need to accept the permission to select file'),
+          content: const Text('Accept'),
+          actions: [
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Accept'))
+          ],
+        ),
+      );
     }
   }
 
@@ -282,7 +469,6 @@ class _ChatScreenState extends State<ChatScreen> {
       maxWidth: 1440,
       source: ImageSource.gallery,
     );
-
     if (result != null) {
       final bytes = await result.readAsBytes();
       final image = await decodeImageFromList(bytes);
@@ -296,9 +482,9 @@ class _ChatScreenState extends State<ChatScreen> {
         size: bytes.length,
         uri: result.path,
         width: image.width.toDouble(),
+        status: types.Status.sending
       );
-
-      _addMessage(message);
+      _addMessage(message,file: ChatConnection.convertToFile(result));
     }
   }
 
@@ -367,6 +553,7 @@ class _ChatScreenState extends State<ChatScreen> {
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: const Uuid().v4(),
       text: message.text,
+      status: types.Status.sending,
     );
 
     _addMessage(textMessage);
@@ -381,7 +568,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (messages != null) {
         List<types.Message> values = [];
         for (var e in messages) {
-          Map<String, dynamic> result = e.toMessageJson();
+          Map<String, dynamic> result = await e.toMessageJson();
           values.add(types.Message.fromJson(result));
         }
         _messages = values;

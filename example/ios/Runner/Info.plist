@@ -41,6 +41,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>$(PRODUCT_NAME) cần bạn chấp nhận cho truy cập thư viện ảnh để chụp ảnh thêm ảnh profile hoặc cho upload ảnh.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>$(PRODUCT_NAME) cần bạn chấp nhận cho truy cập thư viện ảnh để  thêm ảnh profile hoặc cho upload ảnh.</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

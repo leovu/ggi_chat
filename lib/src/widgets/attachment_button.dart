@@ -24,13 +24,6 @@ class AttachmentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: InheritedChatTheme.of(context).theme.attachmentButtonMargin ??
-            const EdgeInsetsDirectional.fromSTEB(
-              8,
-              0,
-              0,
-              0,
-            ),
         child: IconButton(
           constraints: const BoxConstraints(
             minHeight: 24,

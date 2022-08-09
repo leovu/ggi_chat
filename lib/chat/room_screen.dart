@@ -9,7 +9,8 @@ import 'package:intl/intl.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class RoomScreen extends StatefulWidget {
-  const RoomScreen({super.key});
+  final Function? openCreateChatRoom;
+  const RoomScreen({super.key, this.openCreateChatRoom});
 
   @override
   State<RoomScreen> createState() => _RoomScreenState();
@@ -93,6 +94,9 @@ class _RoomScreenState extends State<RoomScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: SizedBox(width:30.0,height: 30.0,
                           child: InkWell(onTap: () async {
+                            if(widget.openCreateChatRoom != null){
+                              widget.openCreateChatRoom!();
+                            }
                           },
                             child: const Icon(Icons.group_add,color: Colors.blue,),)),
                     )

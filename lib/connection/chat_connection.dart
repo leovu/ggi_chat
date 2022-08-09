@@ -81,7 +81,17 @@ class ChatConnection {
     }
     return null;
   }
-  static Future<void>sendChat(String id, String type, String messageText) async {
+  static Future<String?>upload(File file) async {
+    ResponseData responseData = await connection.upload('api/media/chat-upload', file);
+    if(responseData.isSuccess) {
+      if(responseData.data['error_code'] == 0) {
+        return responseData.data['data']['url'];
+      }
+    }
+    return null;
+  }
+  static File convertToFile(XFile xFile) => File(xFile.path);
+  static Future<String?>sendChat(String id, String type, String messageText) async {
     Map<String,dynamic> json = {
       "type": type,
       "messageText": messageText
@@ -90,9 +100,10 @@ class ChatConnection {
     if(responseData.isSuccess) {
       if(responseData.data['error_code'] == 0) {
         streamSocket.sendMessage(messageText, id);
+        return responseData.data['data']['_id'];
       }
     }
-    return;
+    return null;
   }
   static Future<Room?>roomList() async {
     ResponseData responseData = await connection.get('api/chat/room');
@@ -115,7 +126,6 @@ class ChatConnection {
     }
     return streamSocket.checkConnected();
   }
-  static File convertToFile(XFile xFile) => File(xFile.path);
   static reconnect() {
     streamSocket.socket!.connect();
   }

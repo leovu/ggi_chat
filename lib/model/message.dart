@@ -1,4 +1,6 @@
 import 'package:intl/intl.dart';
+import 'package:mime/mime.dart';
+import 'package:http/http.dart' as http;
 
 class ChatMessage {
   List<Messages>? message;
@@ -86,7 +88,7 @@ class Messages {
     data['__v'] = iV;
     return data;
   }
-  Map<String, dynamic> toMessageJson() {
+  Future<Map<String, dynamic>> toMessageJson() async {
     final Map<String, dynamic> data = <String, dynamic>{};
     if (postedByUser != null) {
       data['author'] = {
@@ -102,8 +104,45 @@ class Messages {
       data['createdAt'] = dt.toUtc().millisecondsSinceEpoch;
     }
     data['id'] = sId;
-    data['type'] = 'text';
-    data['text'] = content?.messageText ?? '';
+    if (type == 'image') {
+      data['size'] = 0;
+      data['type'] = 'image';
+      data['name'] = 'image';
+      const regexLink = r'(?:https?://)?\S+\.\S+\.\S+';
+      final urlRegexp = RegExp(regexLink, caseSensitive: false);
+      final matches = urlRegexp.allMatches(content?.messageText ?? '');
+      if (matches.isNotEmpty) {
+        data['uri'] = content?.messageText ?? '';
+      }
+      else {
+        data['type'] = 'text';
+        data['text'] = 'Upload failed!';
+      }
+    }
+    else if(type == 'file') {
+      const regexLink = r'(?:https?://)?\S+\.\S+\.\S+';
+      final urlRegexp = RegExp(regexLink, caseSensitive: false);
+      final matches = urlRegexp.allMatches(content?.messageText ?? '');
+      if (matches.isNotEmpty) {
+        http.Response r = await http.get(Uri.parse(content!.messageText!));
+        final size = r.headers["content-length"];
+        data['size'] = 0;
+        data['type'] = 'file';
+        final mimeType = lookupMimeType(content?.messageText ?? '');
+        data['mimeType'] = mimeType;
+        data['size'] = size;
+        data['name'] = content?.messageText ?? '';
+        data['uri'] = content?.messageText ?? '';
+      }
+      else {
+        data['type'] = 'text';
+        data['text'] = 'Upload failed!';
+      }
+    }
+    else {
+      data['type'] = 'text';
+      data['text'] = content?.messageText ?? '';
+    }
     return data;
   }
 }

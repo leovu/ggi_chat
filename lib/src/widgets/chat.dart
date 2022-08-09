@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -26,6 +27,9 @@ import 'text_message.dart';
 
 /// Entry widget, represents the complete chat. If you wrap it in [SafeArea] and
 /// it should be full screen, set [SafeArea]'s `bottom` to `false`.
+
+typedef ChatEmojiBuilder = void Function(void Function() hideEmoji);
+
 class Chat extends StatefulWidget {
   /// Creates a chat widget.
   const Chat({
@@ -83,6 +87,7 @@ class Chat extends StatefulWidget {
     this.timeFormat,
     this.usePreviewData = true,
     required this.user,
+    required this.onStickerPressed,
     this.userAgent,
     this.loadMore,
     required this.itemPositionsListener,
@@ -104,6 +109,9 @@ class Chat extends StatefulWidget {
   final BubbleRtlAlignment? bubbleRtlAlignment;
 
   final Function(double progress) progressUpdate;
+
+  final void Function(File sticker)
+  onStickerPressed;
 
   /// Allows you to replace the default Input widget e.g. if you want to create
   /// a channel view.
@@ -298,6 +306,7 @@ class Chat extends StatefulWidget {
 
 /// [Chat] widget state.
 class _ChatState extends State<Chat> {
+  late void Function() hideEmoji;
   List<Object> _chatMessages = [];
   List<PreviewImage> _gallery = [];
   PageController? _galleryPageController;
@@ -359,6 +368,7 @@ class _ChatState extends State<Chat> {
                             : GestureDetector(
                                 onTap: () {
                                   FocusManager.instance.primaryFocus?.unfocus();
+                                  hideEmoji.call();
                                   widget.onBackgroundTap?.call();
                                 },
                                 child: LayoutBuilder(
@@ -389,6 +399,10 @@ class _ChatState extends State<Chat> {
                             onAttachmentPressed: widget.onAttachmentPressed,
                             onSendPressed: widget.onSendPressed,
                             options: widget.inputOptions,
+                            onStickerPressed: _onStickerPressed,
+                            builder: (void Function() method) {
+                              hideEmoji = method;
+                            },
                           ),
                     ],
                   ),
@@ -405,6 +419,11 @@ class _ChatState extends State<Chat> {
           ),
         ),
       );
+
+
+  void _onStickerPressed(File sticker) {
+    widget.onStickerPressed(sticker);
+  }
 
   Widget _emptyStateBuilder() =>
       widget.emptyState ??
