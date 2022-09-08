@@ -59,7 +59,7 @@ class ChatConnection {
     return null;
   }
   static Future<Contact?>contactList() async {
-    ResponseData responseData = await connection.get('api/parent/list-family');
+    ResponseData responseData = await connection.get('api/chat/contact');
     if(responseData.isSuccess) {
       return Contact.fromJson(responseData.data);
     }

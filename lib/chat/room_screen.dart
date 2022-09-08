@@ -90,16 +90,16 @@ class _RoomScreenState extends State<RoomScreen> {
                       child: Text('Chats',style: TextStyle(fontSize: 25.0,color: Colors.black)),
                     ),
                     Expanded(child: Container()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: SizedBox(width:30.0,height: 30.0,
-                          child: InkWell(onTap: () async {
-                            if(widget.openCreateChatRoom != null){
-                              widget.openCreateChatRoom!();
-                            }
-                          },
-                            child: const Icon(Icons.group_add,color: Colors.blue,),)),
-                    )
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    //   child: SizedBox(width:30.0,height: 30.0,
+                    //       child: InkWell(onTap: () async {
+                    //         if(widget.openCreateChatRoom != null){
+                    //           widget.openCreateChatRoom!();
+                    //         }
+                    //       },
+                    //         child: const Icon(Icons.group_add,color: Colors.blue,),)),
+                    // )
                   ],
                 ),
               ],
