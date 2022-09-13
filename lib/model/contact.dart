@@ -6,9 +6,16 @@ class Contact {
   Contact.fromJson(Map<String, dynamic> json) {
     if (json['data'] != null) {
       data = <Data>[];
-      json['data'].forEach((v) {
-        data!.add(Data.fromJson(v));
-      });
+      if(json['data'].containsKey('children')){
+        json['data']['children'].forEach((v) {
+          data!.add(Data.fromJson(v));
+        });
+      }
+      if(json['data'].containsKey('parent')){
+        json['data']['parent'].forEach((v) {
+          data!.add(Data.fromJson(v));
+        });
+      }
     }
   }
 
@@ -42,7 +49,7 @@ class Data {
   int? groupId;
   String? chatToken;
   String? chatId;
-  List<Children>? children;
+  // List<Children>? children;
 
   Data(
       {id,
@@ -64,8 +71,7 @@ class Data {
         updatedBy,
         groupId,
         chatToken,
-        chatId,
-        children});
+        chatId});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -88,12 +94,6 @@ class Data {
     groupId = json['group_id'];
     chatToken = json['chat_token'];
     chatId = json['chat_id'];
-    if (json['children'] != null) {
-      children = <Children>[];
-      json['children'].forEach((v) {
-        children!.add(Children.fromJson(v));
-      });
-    }
   }
 
   Map<String, dynamic> toJson() {
@@ -118,9 +118,6 @@ class Data {
     data['group_id'] = groupId;
     data['chat_token'] = chatToken;
     data['chat_id'] = chatId;
-    if (children != null) {
-      data['children'] = children!.map((v) => v.toJson()).toList();
-    }
     return data;
   }
 

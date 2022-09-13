@@ -52,8 +52,10 @@ class ChatConnection {
     };
     ResponseData responseData = await connection.post('api/chat/initiate', json);
     if(responseData.isSuccess) {
+      print("adasdas");
       if(responseData.data['error_code'] == 0) {
-        return Rooms.fromJson(responseData.data['data']['roomInfo']);
+        print(responseData.data['data']);
+        return Rooms.fromJson(responseData.data['data']);
       }
     }
     return null;

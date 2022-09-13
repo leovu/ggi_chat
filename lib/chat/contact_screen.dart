@@ -112,7 +112,9 @@ class _ContactScreenState extends State<ContactScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 5.0),
                           child: InkWell(
                               onTap: () async {
-                                Rooms? rooms = await ChatConnection.initiate([contactListData!.data![position].id!.toString()]);
+                                print(contactListData!.data![position].chatId);
+                                Rooms? rooms = await ChatConnection.initiate([contactListData!.data![position].chatId!.toString()]);
+                                print(rooms);
                                 if (!mounted) return;
                                 if(rooms!=null) {
                                   await Navigator.of(context,rootNavigator: true).push(

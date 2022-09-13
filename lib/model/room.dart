@@ -46,11 +46,11 @@ class Rooms {
     messageId = json['messageId'];
     chatRoomId = json['chatRoomId'];
     message =
-    json['message'] != null ? Message.fromJson(json['message']) : null;
+    json['message'] != null ? (json['message'] is String ? Message(messageText: json['message']) : Message.fromJson(json['message'])) : null;
     type = json['type'];
-    postedByUser = json['postedByUser'] != null
-        ? PostedByUser.fromJson(json['postedByUser'])
-        : null;
+    // postedByUser = json['postedByUser'] != null
+    //     ? PostedByUser.fromJson(json['postedByUser'])
+    //     : null;
     if (json['readByRecipients'] != null) {
       readByRecipients = <ReadByRecipients>[];
       json['readByRecipients'].forEach((v) {
