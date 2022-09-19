@@ -4,7 +4,12 @@ class User {
   User({data});
 
   User.fromJson(Map<String, dynamic> json) {
-    data = json['data'] != null ? Data.fromJson(json['data']) : null;
+    if(json.containsKey('data')){
+
+      data = json['data'] != null ? Data.fromJson(json['data']) : null;
+    }else{
+      data = json != null ? Data.fromJson(json) : null;
+    }
   }
 
   Map<String, dynamic> toJson() {
