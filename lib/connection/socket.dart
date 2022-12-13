@@ -29,18 +29,18 @@ class StreamSocket {
   void connectSocket(User user) {
     socket!.onConnect((_) {
       print("connectSocket");
-      socket!.emit('identity',{'id':user.data?.id});
+      socket!.emit('identity', user.data?.id);
     });
   }
   void sendMessage(String? message, String roomId){
     socket!.emit('new message',{'status': 200, 'message':message, 'room':roomId});
   }
   void joinRoom(String? roomId) {
-    socket!.emit('subscribe',{'roomId':roomId});
+    socket!.emit('subscribe', roomId);
     socket!.on('subscribe_success', (data) {});
   }
   void unsubscribe(String? roomId) {
-    socket!.emit('unsubscribe',{'roomId':roomId});
+    socket!.emit('unsubscribe', roomId);
     socket!.on('unsubscribe_success', (data) {});
   }
   void listenChat(Function callback) {
