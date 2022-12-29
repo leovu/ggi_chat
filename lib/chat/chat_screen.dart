@@ -31,7 +31,7 @@ class _ChatScreenState extends State<ChatScreen> {
   c.ChatMessage? data;
   bool newMessage = false;
   double progress = 0;
-  int currentIndex = 0;
+  int currentIndex = 1;
   final ItemScrollController itemScrollController = ItemScrollController();
   final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
   final _user = types.User(id: ChatConnection.user!.data!.chatId!);
@@ -57,6 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
       data = await ChatConnection.joinRoom(widget.data.chatRoomId!, refresh: true);
       isInitScreen = false;
       if (data != null) {
+        currentIndex = 1;
         List<c.Messages>? messages = data?.message;
         if (messages != null) {
           List<types.Message> values = [];
@@ -151,6 +152,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     onStickerPressed: _onStickerPressed,
                     itemPositionsListener: itemPositionsListener,
                     itemScrollController: itemScrollController,
+                    loadMore: loadMore,
                     progressUpdate: (value) {
                       progress = value;
                       if(progress < 0.1 && newMessage) {
@@ -190,6 +192,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if(value != null) {
       List<c.Messages>? messages = value;
       if(messages.isNotEmpty) {
+        currentIndex++;
         data?.message?.addAll(messages);
         List<types.Message> values = [];
         for(var e in messages) {
