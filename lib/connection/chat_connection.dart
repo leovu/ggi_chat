@@ -36,7 +36,7 @@ class ChatConnection {
     }
   }
   static Future<c.ChatMessage?>joinRoom(String id ,{bool refresh = false}) async {
-    ResponseData responseData = await connection.get('api/chat/room/$id?limit=5&page=0');
+    ResponseData responseData = await connection.get('api/chat/room/$id?limit=15&page=0');
     if(responseData.isSuccess) {
       if(!refresh) {
         streamSocket.joinRoom(id);
@@ -68,7 +68,7 @@ class ChatConnection {
     return null;
   }
   static Future<List<c.Messages>?>loadMoreMessageRoom(String id ,int index) async {
-    ResponseData responseData = await connection.get('api/chat/room/$id?limit=5&page=$index');
+    ResponseData responseData = await connection.get('api/chat/room/$id?limit=15&page=$index');
     if(responseData.isSuccess) {
       return c.ChatMessage.fromJson(responseData.data).message;
     }
