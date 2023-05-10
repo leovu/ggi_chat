@@ -39,16 +39,16 @@ String getUserInitials(types.User user) {
     initials += user.firstName![0].toUpperCase();
   }
 
-  if ((user.lastName ?? '').isNotEmpty) {
-    initials += user.lastName![0].toUpperCase();
-  }
+  // if ((user.lastName ?? '').isNotEmpty) {
+  //   initials += user.lastName![0].toUpperCase();
+  // }
 
   return initials.trim();
 }
 
 /// Returns user name as joined firstName and lastName.
 String getUserName(types.User user) =>
-    '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim();
+    '${user.firstName ?? ''}'.trim();
 
 /// Returns formatted date used as a divider between different days in the
 /// chat history

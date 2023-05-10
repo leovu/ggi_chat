@@ -173,7 +173,7 @@ class _RoomScreenState extends State<RoomScreen> {
                             child: Row(
                               children: [
                                 Expanded(child: AutoSizeText(!isGroup ?
-                                '${info.firstName} ${info.lastName}' : 'Group with ${info.firstName} ${info.lastName}',
+                                '${info.firstName}' : 'Group with ${info.firstName}',
                                     overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontWeight: !isRead(data.readByRecipients) ? FontWeight.bold : FontWeight.normal),
                                   ),
@@ -213,7 +213,7 @@ class _RoomScreenState extends State<RoomScreen> {
     People? p;
     try {
       p = people?.firstWhere((element) => element.sId == author);
-      return (p!.sId != ChatConnection.user!.data!.chatId ? ('${(p.firstName ?? '').trim()} ${(p.lastName ?? '').trim()}').trim() : 'You') + (isGroupOwner ? ' ' : ': ');
+      return (p!.sId != ChatConnection.user!.data!.chatId ? ('${(p.firstName ?? '').trim()}').trim() : 'You') + (isGroupOwner ? ' ' : ': ');
     }catch(_){
       return '';
     }

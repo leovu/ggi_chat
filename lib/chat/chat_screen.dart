@@ -125,7 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(!isGroup ?
-                                '${info.firstName} ${info.lastName}' : 'Group with ${info.firstName} ${info.lastName}',
+                                '${info.firstName}' : 'Group with ${info.firstName}',
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                     style: const TextStyle(fontSize: 15.0,color: Colors.black)),

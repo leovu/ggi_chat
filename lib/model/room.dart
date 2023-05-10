@@ -262,9 +262,9 @@ class People {
     if(firstName != '' && firstName != null) {
       avatarName += firstName![0];
     }
-    if(lastName != '' && lastName != null) {
-      avatarName += lastName![0];
-    }
+    // if(lastName != '' && lastName != null) {
+    //   avatarName += lastName![0];
+    // }
     return avatarName;
   }
 }
