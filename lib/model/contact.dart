@@ -8,12 +8,16 @@ class Contact {
       data = <Data>[];
       if(json['data'].containsKey('children')){
         json['data']['children'].forEach((v) {
-          data!.add(Data.fromJson(v));
+          if(v != null){
+            data!.add(Data.fromJson(v));
+          }
         });
       }
       if(json['data'].containsKey('parent')){
         json['data']['parent'].forEach((v) {
-          data!.add(Data.fromJson(v));
+          if(v != null){
+            data!.add(Data.fromJson(v));
+          }
         });
       }
     }
