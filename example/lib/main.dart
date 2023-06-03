@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ggi_chat/ggi_chat.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_file_view/flutter_file_view.dart';
 
 void main() {
   runApp(const OverlaySupport.global(
@@ -13,7 +12,7 @@ void main() {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
-        ViewerLocalizationsDelegate.delegate,
+        // ViewerLocalizationsDelegate.delegate,
       ],
       title: 'Navigation Basics',
       debugShowCheckedModeBanner: false,
