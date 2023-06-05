@@ -12,7 +12,7 @@ import 'package:ggi_chat/src/widgets/chat.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
-import 'package:open_file/open_file.dart';
+// import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:uuid/uuid.dart';
@@ -532,7 +532,7 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
 
-      await OpenFile.open(localPath);
+      // await OpenFile.open(localPath);
     }
   }
 
