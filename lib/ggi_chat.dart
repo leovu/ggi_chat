@@ -4,13 +4,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ggi_chat/connection/chat_connection.dart';
 import 'package:ggi_chat/connection/http_connection.dart';
+import 'package:ggi_chat/connection/socket.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
+import 'package:ggi_chat/model/message.dart' as c;
 import 'chat/home_screen.dart';
 import 'ggi_chat_platform_interface.dart';
 
 class GgiChat {
   static BuildContext? context;
+  static HTTPConnection connection = HTTPConnection();
+  static StreamSocket streamSocket = StreamSocket();
+
   Future<String?> getPlatformVersion() {
     return GgiChatPlatform.instance.getPlatformVersion();
   }
@@ -27,6 +31,17 @@ class GgiChat {
   }
   static disconnectSocket() {
     ChatConnection.dispose(isDispose: true);
+  }
+
+  static Future<c.ChatMessage?>joinRoom(String id ,{bool refresh = false}) async {
+    ResponseData responseData = await connection.get('api/chat/room/$id?limit=15&page=0');
+    if(responseData.isSuccess) {
+      if(!refresh) {
+        streamSocket.joinRoom(id);
+      }
+      return c.ChatMessage.fromJson(responseData.data);
+    }
+    return null;
   }
   static void open(BuildContext context, String phone, String password, String role,
       String appIcon,Locale locale,
